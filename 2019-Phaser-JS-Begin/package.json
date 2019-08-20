@@ -1,0 +1,21 @@
+{
+  "name": "phaserjs-begin",
+  "version": "1.0.0",
+  "description": "Following the tutorial",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "http-server -p 9000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EddyArellanes/first-game-phaser-js.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EddyArellanes/first-game-phaser-js/issues"
+  },
+  "homepage": "https://github.com/EddyArellanes/first-game-phaser-js#readme"
+}

@@ -1,0 +1,189 @@
+<!--
+NOTA 1: LAS FLECHAS SOLO SIRVEN SI DEFINES EL TAMAÑO DE WORLD
+NOTA 2: PARA AGREGAR CORRECTAMENTE SPRITESHEETS TENEMOS QUE AÑADIR EN EL TAMAÑO DEL FRAME AL PRINCIPIO LA RESOLUCIÓN DE ANCHO Y LARGO REAL DE LA IMAGEN AL MENOS HASTA DÓNDE ABARCA EL PRIMER CUADRO DE LA ANIMACIÓN, POR MÁS GRANDE QUE SEA NO IMPORTA, DESPUÉS CON SCALE PODEMOS HACERLO MÁS PEQUEÑO.
+NOTA 3: AL AÑADIR LAS ANIMATIONS POR DEFAULT SE CARGARÁ EL SPRITE DEL MONO DÓNDE SE DECLARO LA ÚLTIMA FUNCIÓN
+NOTA 4: PARA QUE LAS ANIMACIONES FUNCIONEN CORRECTAMENTE A PARTIR DEL PRIMER IF DE IZQUIERDA EL DE DERECHO DEBE SER ELSE IF
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>GameXperiment</title>
+	<script type="text/javascript" src="js/phaser.min.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+	var game= new Phaser.Game(800,600,Phaser.AUTO,'',{
+		preload: preload, create: create, update: update, render: render
+	});
+	function preload(){
+		//game.stage.backgroundColor = '#007236';  //Cargar color de fondo
+		game.load.image('background','public/Background2.jpg');
+		
+		game.load.image('ball','public/ball.png');
+		game.load.image('ledge','public/PieceOfShit.png');
+		//37,45 serán los tamaños de cada cuadro(frame) width y height respectivamente, el 2 define cuántos cuadros tiene la imagen PNG
+		game.load.spritesheet('mono','public/sp3.png',243,240,3);
+		//game.load.spritesheet('mono','public/sp.png',56,66,2);
+		
+	}
+
+	var cursors; //flechas
+	var player;  //El personaje
+	var platforms;//Las plataformas
+
+	var balls; //Las bolitas
+	//Estos se usarán en collectBalls
+	var score=0; //El contador por cada bola recogida
+	var scoreText; //Mostrará el contador
+	function create(){
+		//Parámetros X y Y dónde empieza el lienzo siempre será la esquina superior izquierda, Segundos parámetros Width y Height
+		game.world.setBounds(0, 0, 800, 600);
+		//La Física del juego
+		game.physics.startSystem(Phaser.Physics.ARCADE); 
+		//Añadiendo el fondo, primeros dos parámetros coordenadas x y y, tercero nombre de la imagen a cargar
+		game.add.sprite(0,0,'background'); 
+		//Añadiendo un sprite al juego en este caso una pelota
+		var ball=game.add.sprite(140,17,'ball');
+		//Parámetro de escala ubicada en porcentaje 2=  el doble etc.
+		ball.scale.setTo(0.10,0.10);
+		//Agregar un grupo de varios sprites iguales
+		platforms= game.add.group();
+		//Haciédolos sólidos y aptos para las leyes físicas
+		platforms.enableBody=true;
+		//Creando una base en el piso
+		var ground= platforms.create(-20,565,'ledge');
+		ground.scale.setTo(2.9,1);
+		//Haciéndolo colapsable con otros objetos
+		ground.body.immovable= true;
+
+		//Ahora creamos una plataforma pequeña para saltar
+		var ledge= platforms.create(300,230,'ledge');
+		ledge.body.immovable= true;
+		ledge.scale.setTo(0.50,0.50);
+		//Creamos otra
+		var ledge= platforms.create(500,350,'ledge');
+		ledge.body.immovable= true;
+		ledge.scale.setTo(0.50,0.50);
+		//Una más
+		var ledge= platforms.create(330,470,'ledge');
+		ledge.body.immovable= true;
+		ledge.scale.setTo(0.50,0.50);
+
+
+		//Agregamos a nuestro mono
+		player= game.add.sprite(20,100,'mono');
+		player.scale.setTo(0.25,0.25);
+		//Le añadimos propiedades fisicas como las colisiones.
+		game.physics.arcade.enable(player);
+		//Para que brinque
+		player.body.bounce.y= 0.2;
+		//El peso de caída
+		player.body.gravity.y= 700;
+		//Para evitar que se salga del tamaño del World
+		player.body.collideWorldBounds= true;
+
+		/*Añadimos animaciones para que camina a la izquiera y derecha
+		left es el nombre de la función, el arreglo [1] será la posición de la imagen según los cuadros establecidos en nuestro caso cada 220 pixeles se muestra la siguiente imagen que es la dos, el 10 es el tiempo de frames por segundo, en este caso 10.
+		*/
+		player.animations.add('left',[0],10,true);
+		player.animations.add('right',[2],10,true);
+
+
+		//Añadir un grupo de objetos recogibles
+		balls= game.add.group();
+		balls.enableBody= true;
+		//Crearemos 10 balls con un ciclo
+		for(var i=0;i<10;i++){
+			//Creando bola por bola y la posición será en X el número de i por 70, i irá aumentando 1,2,3,4 etc,
+			var ballin= balls.create(i* 80,0, 'ball');
+			ballin.scale.setTo(0.10,0.10);
+			//De momento la posición Y era cero, le añadimos gravedad para que disgreguen por las plataformas y suelo
+			ballin.body.gravity.y= 300;
+			//Para que reboten cuando caigan
+		}
+
+		//Se le da formato a la variable del Score
+		//En los primeros dos parámetros son X y Y, el tercero es el String a mostar, el cuarto son propiedades y formateo de el texto como color y tamaño de fuente
+		scoreText= game.add.text(16,16,'Score: 0',{
+			fontSize: '32px', fill:'#FFF'
+		});
+		//Forma de agregar las flechas de la computadora
+		cursors = game.input.keyboard.createCursorKeys();
+		
+ 		
+ 		
+	}
+	function update(){
+		//Esto nos permite añadir una colisión entre el mono y las plataformas de modo que cuando se tocan el mono queda encima de ellas.
+        game.physics.arcade.collide(player, platforms);
+        //Enlazamos las colisiones entre las bolas y las plataformas
+        game.physics.arcade.collide(balls, platforms);
+        //Revisamos si una ball hace contacto con un player e instanciamos una función, los primeros 2 parámetros son los objetos a comparar, el tercer parámetro es la función que llamaremos, el cuarto parámetro y el quinto son desconocidos para mí por ahora.
+        game.physics.arcade.overlap(player, balls, collectBalls, null,this);
+
+
+        //Reinicia la velocidad del jugador fuera de las teclas
+        player.body.velocity.x= 0;
+
+        //Las Condiciones para que funcionen las flechas
+		if (cursors.up.isDown){
+        //  Dentro de la tecla abajo si además está apretada SHIFT podremos rotar la cámara
+        	if (cursors.up.shiftKey){
+            game.world.rotation += 0.05;
+        	}
+            game.camera.y -= 4;
+    	    
+    	}
+    	/*if (cursors.down.isDown){
+        	if (cursors.down.shiftKey){
+            game.world.rotation -= 0.05;
+        	}        	
+            game.camera.y += 4;
+        }
+    	
+	      */
+    	if (cursors.left.isDown){
+    	//La cámara se correrá hacia la izquierda de a 4 píxeles
+        //game.camera.x -= 4;
+        //El jugador se moverá hacia la izquiera en 30 píxeles
+        player.body.velocity.x= -150;
+        //Se ejecuta la animación del cuadro 1
+        player.animations.play('left');
+    	}
+    	
+    	else if (cursors.right.isDown){
+        player.body.velocity.x= 150;
+        //Se ejecuta la animación del cuadro 1
+        player.animations.play('right');
+   	 	}
+   	 	else{
+    		player.animations.stop();
+    		player.frame= 1;
+    	}
+    	//Si la tecla arriba está apretada YYY si el jugador está tocando algo en el piso
+    	if(cursors.up.isDown && player.body.touching.down){
+    		player.body.velocity.y=-450;
+    	}
+
+	}
+ 	function render(){
+ 		//Para mostrar las coordenadas y tamaño del World en el juego
+ 		//game.debug.cameraInfo(game.camera,32,32);
+ 	}
+
+ 	function collectBalls(player, balls){
+ 		//El contacto con la bola la elimina
+ 		balls.kill();
+ 		//Por cada vez se suman 5 puntos
+ 		score+=5;
+ 		//Lo añadimos al texto mostrado
+ 		scoreText.text= 'Score: ' + score;
+
+
+ 	}
+
+</script>
+</body>
+</html>

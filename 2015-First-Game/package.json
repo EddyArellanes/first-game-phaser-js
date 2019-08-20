@@ -1,0 +1,21 @@
+{
+  "name": "first-game-phaser-js",
+  "version": "1.0.0",
+  "description": "The original date of the creation this Repo was on 2015 December long time ago.\r after 4 years, As a part of HyperLabs, Some old projects will reborn to be improved or continued, following the technologies nowadays.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "http-server -p 9000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EddyArellanes/first-game-phaser-js.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EddyArellanes/first-game-phaser-js/issues"
+  },
+  "homepage": "https://github.com/EddyArellanes/first-game-phaser-js#readme"
+}
